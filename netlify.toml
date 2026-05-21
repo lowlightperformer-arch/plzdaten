@@ -1,0 +1,16 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[plugins]
+
+[[redirects]]
+  from = "/*"
+  to = "/*"
+  status = 200
+
+[build.processing]
+  skip_processing = true
+
+[build.processing.html]
+  pretty_urls = false
