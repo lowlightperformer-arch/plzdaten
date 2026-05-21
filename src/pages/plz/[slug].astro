@@ -1,0 +1,176 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAllPlzPages, slugify } from '../../utils/geoData.js';
+
+export async function getStaticPaths() {
+  const allPlz = getAllPlzPages();
+  
+  if (!allPlz || allPlz.length === 0) {
+    console.error("❌ PLZ Dataset is completely empty or failed to load!");
+    return [];
+  }
+
+  return allPlz.map((p, index) => {
+    // Dynamic mapping for different CSV header variants + the mapped names from geoData.js
+    const postalCode = p.postalCode || p.plz || p.PLZ || p.postleitzahl || '';
+    const rawCity = p.placeName || p.ort || p.Ort || p.stadt || p.Stadt || p.city || '';
+    
+    const citySlug = slugify(rawCity);
+    const fullSlug = `${postalCode}-${citySlug}`.toLowerCase().trim();
+
+    // Print the first few paths in the terminal for visual confirmation
+    if (index < 5) {
+      console.log(`ℹ️ [Astro Route Build] Generated Slug: ${fullSlug}`);
+    }
+
+    return {
+      params: { slug: fullSlug },
+      props: { plzData: p }
+    };
+  });
+}
+
+const { slug } = Astro.params;
+const { plzData } = Astro.props;
+
+// Double-check fallback handling if properties are missing
+const displayPlz = plzData?.postalCode || plzData?.plz || plzData?.PLZ || '';
+const displayCity = plzData?.placeName || plzData?.ort || plzData?.Ort || plzData?.stadt || plzData?.Stadt || '';
+const bundesland = plzData?.bundesland || "";
+const stateCode = (plzData?.stateCode || "").toLowerCase();
+const landkreis = plzData?.landkreis || "";
+const displayLandkreis = landkreis.toLowerCase().startsWith('landkreis') 
+    ? landkreis 
+    : `Landkreis ${landkreis}`;
+
+const rawLat = plzData?.latitude || "0";
+const rawLng = plzData?.longitude || "0";
+
+const latitude = rawLat.toString().replace(',', '.').trim();
+const longitude = rawLng.toString().replace(',', '.').trim();
+
+const landkreisSlug = slugify(landkreis);
+
+const title = `PLZ ${displayPlz} ${displayCity} – Postleitzahl Übersicht & Karte`;
+const description = `Suchen Sie die Postleitzahl ${displayPlz}? Hier finden Sie alle Details zu ${displayCity} (${displayLandkreis}), Bundesland ${bundesland}, geografische Koordinaten und eine interaktive Karte.`;
+
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: bundesland, url: `/bundesland/${stateCode}` },
+  { name: displayLandkreis, url: `/landkreis/${landkreisSlug}` },
+  { name: `${displayPlz} ${displayCity}`, url: `/plz/${slug}` }
+];
+
+const mapUrl = `https://maps.google.com/maps?q=${latitude},${longitude}&z=14&output=embed`;
+---
+
+<Layout title={title} description={description} breadcrumbs={breadcrumbs}>
+  <main class="container mx-auto p-4 max-w-4xl">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <!-- Header -->
+      <div class="bg-slate-50 border-b border-slate-200 p-6">
+        <h1 class="text-3xl font-extrabold text-slate-900 mb-2">
+          Postleitzahl {displayPlz} {displayCity}
+        </h1>
+        <p class="text-slate-600 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          {displayCity}, {displayLandkreis}, {bundesland}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+        <!-- Details Column -->
+        <div class="p-6 space-y-6">
+          <div>
+            <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Standort-Details</h2>
+            <dl class="space-y-4">
+              <div class="flex justify-between border-b border-slate-100 pb-2">
+                <dt class="text-slate-600">Postleitzahl</dt>
+                <dd class="font-bold text-slate-900">{displayPlz}</dd>
+              </div>
+              <div class="flex justify-between border-b border-slate-100 pb-2">
+                <dt class="text-slate-600">Ort</dt>
+                <dd class="font-medium text-slate-900">{displayCity}</dd>
+              </div>
+              <div class="flex justify-between border-b border-slate-100 pb-2">
+                <dt class="text-slate-600">Landkreis</dt>
+                <dd class="text-slate-900">
+                  <a href={`/landkreis/${landkreisSlug}`} class="text-blue-600 hover:underline">
+                    {displayLandkreis}
+                  </a>
+                </dd>
+              </div>
+              <div class="flex justify-between border-b border-slate-100 pb-2">
+                <dt class="text-slate-600">Bundesland</dt>
+                <dd class="text-slate-900">
+                  <a href={`/bundesland/${stateCode}`} class="text-blue-600 hover:underline">
+                    {bundesland}
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div>
+            <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Geografische Daten</h2>
+            <dl class="grid grid-cols-2 gap-4">
+              <div class="bg-slate-50 p-3 rounded-lg">
+                <dt class="text-xs text-slate-500 mb-1">Breitengrad</dt>
+                <dd class="font-mono text-sm text-slate-900">{latitude}</dd>
+              </div>
+              <div class="bg-slate-50 p-3 rounded-lg">
+                <dt class="text-xs text-slate-500 mb-1">Längengrad</dt>
+                <dd class="font-mono text-sm text-slate-900">{longitude}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Map Column -->
+        <div class="bg-slate-100 min-h-[300px] h-full">
+          <iframe
+            width="100%"
+            height="100%"
+            style="border:0; min-height: 400px;"
+            loading="lazy"
+            allowfullscreen
+            src={mapUrl}
+          ></iframe>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="bg-slate-50 p-6 border-t border-slate-200">
+        <a 
+          href="/" 
+          class="inline-flex items-center text-blue-600 font-medium hover:gap-2 transition-all gap-1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          Zurück zur Suche
+        </a>
+      </div>
+    </div>
+
+    <!-- SEO Text Section -->
+    <article class="mt-12 prose prose-slate max-w-none">
+      <h2 class="text-2xl font-bold text-slate-900">Informationen über {displayCity} ({displayPlz})</h2>
+      <p>
+        Die Postleitzahl <strong>{displayPlz}</strong> ist der Stadt bzw. dem Ort <strong>{displayCity}</strong> zugeordnet. 
+        Dieses Gebiet liegt im <strong>{displayLandkreis}</strong> im Bundesland <strong>{bundesland}</strong>.
+      </p>
+      <p>
+        In unserer Datenbank finden Sie nicht nur die postalische Zuordnung, sondern auch die exakten geografischen Koordinaten 
+        ({latitude}, {longitude}) für Kartendienste und Navigationssysteme. {displayCity} ist Teil des vielfältigen Postleitzahlensystems 
+        in Deutschland, das eine effiziente Zustellung von Briefen und Paketen ermöglicht.
+      </p>
+    </article>
+  </main>
+</Layout>
+
+<style>
+  main {
+    min-height: 80vh;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+  }
+</style>

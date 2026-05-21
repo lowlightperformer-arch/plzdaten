@@ -1,0 +1,16 @@
+{
+  "name": "postleitzahl",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
+    "astro": "latest",
+    "csv-parse": "^6.2.1"
+  }
+}

@@ -1,0 +1,162 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  canonicalUrl: string;
+  ogImage?: string;
+  breadcrumbs?: { name: string; url: string }[];
+}
+
+const { 
+  title, 
+  description, 
+  ogImage = '/default-og.jpg', 
+  breadcrumbs = [] 
+} = Astro.props;
+
+// Dynamically generate the canonical URL based on the current path and Astro.site
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+// Generate JSON-LD BreadcrumbList
+const breadcrumbSchema = breadcrumbs.length > 0 ? {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": breadcrumbs.map((crumb, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "name": crumb.name,
+    "item": new URL(crumb.url, Astro.site).href
+  }))
+} : null;
+---
+
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="2DmiCHhp2XfrII7T1ltGL4da26vBAgyY6P3UmwTkkIQ" />
+    
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NN9E26LLHQ"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-NN9E26LLHQ');
+    </script>
+    
+    <!-- SEO Meta Tags -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site).href} />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalUrl} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={new URL(ogImage, Astro.site || 'https://postleitzahl.de').href} />
+
+    <!-- JSON-LD Breadcrumbs -->
+    {breadcrumbSchema && (
+      <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    )}
+
+    <style is:global>
+      :root {
+        --primary: #2563eb;
+        --text: #1f2937;
+        --bg: #ffffff;
+        --footer-bg: #f3f4f6;
+      }
+      
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        line-height: 1.5;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      header {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 2rem;
+      }
+
+      header nav a {
+        font-weight: bold;
+        text-decoration: none;
+        color: var(--primary);
+        font-size: 1.25rem;
+      }
+
+      main {
+        flex: 1;
+        width: 100%;
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      footer {
+        background: var(--footer-bg);
+        padding: 2rem;
+        text-align: center;
+        margin-top: auto;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      footer nav {
+        margin-top: 1rem;
+      }
+
+      footer nav a {
+        margin: 0 0.5rem;
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.875rem;
+      }
+
+      footer nav a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/">PLZ Daten</a>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer>
+      <p>&copy; {new Date().getFullYear()} PLZ Daten. Alle Rechte vorbehalten.</p>
+      <nav>
+        <a href="/impressum">Impressum</a>
+        <a href="/datenschutz">Datenschutz</a>
+      </nav>
+    </footer>
+  </body>
+</html>

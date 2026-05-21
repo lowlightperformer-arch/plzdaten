@@ -1,0 +1,156 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getAllLandkreisPages, getAllPlzPages, slugify } from '../../utils/geoData';
+
+export async function getStaticPaths() {
+  const allDistricts = getAllLandkreisPages();
+  return allDistricts
+    .filter(d => d.slug && d.slug.trim() !== "")
+    .map((district) => ({
+      params: { slug: district.slug },
+      props: { 
+        landkreis: district.landkreis, 
+        bundesland: district.bundesland,
+        stateCode: district.stateCode 
+      },
+    }));
+}
+
+const { landkreis, bundesland, stateCode, slug } = Astro.props;
+
+// Formatting for the display name
+const displayLandkreis = landkreis.toLowerCase().startsWith('landkreis') 
+    ? landkreis 
+    : `Landkreis ${landkreis}`;
+
+// Filter all PLZ entries for this specific Landkreis
+const allPlzEntries = getAllPlzPages();
+const matchingPlz = allPlzEntries.filter(item => item.landkreis === landkreis);
+
+// SEO Meta Tags
+const title = `Postleitzahlen im ${displayLandkreis} (Bundesland ${bundesland})`;
+const description = `Übersicht aller Postleitzahlen, Orte und Gemeinden im ${displayLandkreis}. Finden Sie schnell die richtige PLZ.`;
+
+// Breadcrumbs
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: bundesland, url: `/bundesland/${stateCode}` },
+  { name: displayLandkreis, url: `/landkreis/${slug}` }
+];
+---
+
+<Layout 
+  title={title} 
+  description={description} 
+  breadcrumbs={breadcrumbs}
+>
+  <nav class="breadcrumb-nav">
+    {breadcrumbs.map((crumb, index) => (
+      <span>
+        <a href={crumb.url}>{crumb.name}</a>
+        {index < breadcrumbs.length - 1 && <span class="separator">/</span>}
+      </span>
+    ))}
+  </nav>
+
+  <article class="landkreis-container">
+    <header class="page-header">
+      <h1>{displayLandkreis}: Alle Postleitzahlen</h1>
+      <p class="intro-text">
+        Auf dieser Seite finden Sie eine Übersicht aller Gemeinden und Postleitzahlen im <strong>{displayLandkreis}</strong>, 
+        gelegen im Bundesland <strong>{bundesland}</strong>. Klicken Sie auf einen Eintrag, um detaillierte Informationen 
+        und eine Karte zu erhalten.
+      </p>
+    </header>
+
+    <section class="plz-list">
+      <div class="list-grid">
+        {matchingPlz.map((item) => (
+          <a href={`/plz/${item.slug}`} class="plz-card">
+            <span class="plz-badge">{item.postalCode}</span>
+            <span class="place-name">{item.placeName}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </article>
+</Layout>
+
+<style>
+  .breadcrumb-nav {
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+  
+  .breadcrumb-nav a {
+    text-decoration: none;
+    color: #2563eb;
+  }
+
+  .breadcrumb-nav .separator {
+    margin: 0 0.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 3rem;
+  }
+
+  h1 {
+    font-size: 2.25rem;
+    margin-bottom: 1rem;
+    color: #111827;
+  }
+
+  .intro-text {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: #4b5563;
+    max-width: 800px;
+  }
+
+  .list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .plz-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: #111827;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .plz-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .plz-badge {
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    margin-right: 1rem;
+    font-family: monospace;
+    font-size: 1rem;
+  }
+
+  .place-name {
+    font-weight: 500;
+  }
+
+  @media (max-width: 640px) {
+    .list-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

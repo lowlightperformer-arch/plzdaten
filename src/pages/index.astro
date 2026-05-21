@@ -1,0 +1,392 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getAllBundeslandPages } from '../utils/geoData';
+
+const allStates = getAllBundeslandPages().sort((a, b) => 
+  a.bundesland.localeCompare(b.bundesland, 'de')
+);
+
+const title = "Postleitzahlen Deutschland – Die komplette PLZ-Datenbank";
+const description = "Suchen Sie eine Postleitzahl in Deutschland? Finden Sie schnell alle PLZ, Orte, Landkreise und Bundesländer mit unserer interaktiven Datenbank.";
+const breadcrumbs = [{ name: 'Home', url: '/' }];
+---
+
+<Layout 
+  title={title} 
+  description={description} 
+  breadcrumbs={breadcrumbs}
+>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Wie viele Postleitzahlen gibt es in Deutschland?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "In Deutschland gibt es derzeit rund 8.200 eigenständige Postleitzahlen, die für Orte, Zustellbezirke, Großkunden und Postfächer vergeben sind."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Was bedeuten die ersten zwei Ziffern einer PLZ?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Die ersten zwei Ziffern einer Postleitzahl stehen für die Postleitregion. Sie zeigen an, in welchem Teil eines Bundeslandes oder in welcher größeren städtischen Region sich die Adresse befindet."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Gibt es Postleitzahlen, die sich über mehrere Bundesländer erstrecken?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nein, das deutsche Postleitzahlensystem ist so aufgebaut, dass jede PLZ strikt innerhalb eines einzigen Bundeslandes liegt. Das erleichtert die administrative und postalische Zuordnung erheblich."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Wie finde ich den passenden Landkreis zu einer PLZ?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nutzen Sie einfach unsere Suchfunktion oder wählen Sie das entsprechende Bundesland auf unserer Startseite aus. In unserer Datenbank ist jede Postleitzahl exakt dem zuständigen Landkreis oder der kreisfreien Stadt zugeordnet."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Was ist der Unterschied zwischen einer Gemeinde und einem Landkreis bei der PLZ-Suche?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Eine Gemeinde (oder Stadt) ist der konkrete Ort, an den die Post geliefert wird. Ein Landkreis ist die übergeordnete administrative Verwaltungseinheit, die mehrere Gemeinden umfasst. Größere Städte sind oft 'kreisfrei' und bilden ihren eigenen Stadtkreis."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <section class="hero">
+    <h1>Postleitzahlen Deutschland – Die komplette PLZ-Datenbank</h1>
+    <p class="hero-subtitle">
+      Finden Sie schnell und einfach Postleitzahlen, Orte und Landkreise in allen 16 Bundesländern Deutschlands.
+    </p>
+
+    <div class="search-container">
+      <div class="search-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input 
+          type="text" 
+          id="plz-search" 
+          placeholder="PLZ oder Ort suchen (z.B. Aachen, 86150)..." 
+          autocomplete="off"
+        />
+      </div>
+    </div>
+  </section>
+
+  <section class="seo-content">
+    <div class="content-block">
+      <h2>Wie ist das deutsche Postleitzahlensystem aufgebaut?</h2>
+      <p>Das aktuelle fünfstellige Postleitzahlensystem (PLZ) wurde in Deutschland im Jahr 1993 eingeführt. Die fünf Ziffern sind nicht zufällig gewählt, sondern folgen einer strikten geografischen Logik. Die erste Ziffer steht für die Postleitzonen (Leitzonen), während die zweite Ziffer die Postleitregion definiert. Die letzten drei Ziffern bestimmen schließlich den genauen Ort, den Zustellbezirk oder die Postfächer innerhalb einer Gemeinde.</p>
+    </div>
+
+    <div class="content-block">
+      <h2>Effiziente Suche in unserer PLZ-Datenbank</h2>
+      <p>Mit PLZ Daten bieten wir Ihnen eine übersichtliche und strukturierte Datenbank aller Postleitzahlen, Landkreise und kreisfreien Städte in Deutschland. Egal, ob Sie geografische Koordinaten für Kartenanwendungen (Breitengrad und Längengrad) suchen, logistische Routen planen oder Postsendungen korrekt adressieren möchten – wählen Sie einfach das gewünschte Bundesland aus, um tiefer in die regionalen Strukturen einzutauchen.</p>
+    </div>
+  </section>
+
+  <section class="states-section">
+    <h2>Bundesländer Übersicht</h2>
+    <div class="states-grid" id="states-grid">
+      {allStates.map((state) => (
+        <a 
+          href={`/bundesland/${state.stateCode.toLowerCase()}`} 
+          class="state-card"
+        >
+          <div class="state-content">
+            <span class="state-name">{state.bundesland}</span>
+            <span class="state-badge">{state.stateCode.toUpperCase()}</span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+      ))}
+    </div>
+    <div class="states-grid hidden" id="search-results-grid">
+      <!-- Dynamically populated -->
+    </div>
+    <div id="no-results" class="hidden">
+      Keine Ergebnisse gefunden.
+    </div>
+  </section>
+
+  <section class="faq-section">
+    <h2>Häufig gestellte Fragen (FAQ)</h2>
+    <div class="faq-container">
+      <div class="faq-item">
+        <h3>Wie viele Postleitzahlen gibt es in Deutschland?</h3>
+        <p>In Deutschland gibt es derzeit rund 8.200 eigenständige Postleitzahlen, die für Orte, Zustellbezirke, Großkunden und Postfächer vergeben sind.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Was bedeuten die ersten zwei Ziffern einer PLZ?</h3>
+        <p>Die ersten zwei Ziffern einer Postleitzahl stehen für die Postleitregion. Sie zeigen an, in welchem Teil eines Bundeslandes oder in welcher größeren städtischen Region sich die Adresse befindet.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Gibt es Postleitzahlen, die sich über mehrere Bundesländer erstrecken?</h3>
+        <p>Nein, das deutsche Postleitzahlensystem ist so aufgebaut, dass jede PLZ strikt innerhalb eines einzigen Bundeslandes liegt. Das erleichtert die administrative und postalische Zuordnung erheblich.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Wie finde ich den passenden Landkreis zu einer PLZ?</h3>
+        <p>Nutzen Sie einfach unsere Suchfunktion oder wählen Sie das entsprechende Bundesland auf unserer Startseite aus. In unserer Datenbank ist jede Postleitzahl exakt dem zuständigen Landkreis oder der kreisfreien Stadt zugeordnet.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Was ist der Unterschied zwischen einer Gemeinde und einem Landkreis bei der PLZ-Suche?</h3>
+        <p>Eine Gemeinde (oder Stadt) ist der konkrete Ort, an den die Post geliefert wird. Ein Landkreis ist die übergeordnete administrative Verwaltungseinheit, die mehrere Gemeinden umfasst. Größere Städte sind oft "kreisfrei" und bilden ihren eigenen Stadtkreis.</p>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  let searchIndex = null;
+  const searchInput = document.getElementById('plz-search') as HTMLInputElement;
+  const statesGrid = document.getElementById('states-grid');
+  const resultsGrid = document.getElementById('search-results-grid');
+  const noResults = document.getElementById('no-results');
+  const seoBlocks = document.querySelector('.seo-content');
+  const faqBlocks = document.querySelector('.faq-section');
+  const statesHeading = document.querySelector('.states-section h2');
+
+  async function loadSearchIndex() {
+    if (searchIndex) return searchIndex;
+    try {
+      const response = await fetch('/search-index.json');
+      searchIndex = await response.json();
+      return searchIndex;
+    } catch (e) {
+      console.error('Failed to load search index', e);
+      return [];
+    }
+  }
+
+  function createResultCard(item) {
+    return `
+      <a href="/plz/${item.s}" class="state-card">
+        <div class="state-content">
+          <span class="state-badge">${item.p}</span>
+          <span class="state-name">${item.n}</span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+    `;
+  }
+
+  searchInput?.addEventListener('input', async (e) => {
+    const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+    
+    if (query.length <= 1) {
+      statesGrid?.classList.remove('hidden');
+      resultsGrid?.classList.add('hidden');
+      noResults?.classList.add('hidden');
+      seoBlocks?.classList.remove('hidden');
+      faqBlocks?.classList.remove('hidden');
+      if (statesHeading) statesHeading.textContent = "Bundesländer Übersicht";
+      return;
+    }
+
+    const index = await loadSearchIndex();
+    const matches = index.filter(item => 
+      item.p.includes(query) || 
+      item.n.toLowerCase().includes(query)
+    ).slice(0, 48);
+
+    statesGrid?.classList.add('hidden');
+    seoBlocks?.classList.add('hidden');
+    faqBlocks?.classList.add('hidden');
+    if (statesHeading) statesHeading.textContent = "Suchergebnisse";
+    
+    if (matches.length > 0) {
+      resultsGrid!.innerHTML = matches.map(createResultCard).join('');
+      resultsGrid?.classList.remove('hidden');
+      noResults?.classList.add('hidden');
+    } else {
+      resultsGrid?.classList.add('hidden');
+      noResults?.classList.remove('hidden');
+    }
+  });
+</script>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 4rem 1rem;
+    background: linear-gradient(to bottom, #f8fafc, #ffffff);
+    margin: -2rem -2rem 2rem -2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+    color: #475569;
+    margin-bottom: 2.5rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .search-container {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1.25rem;
+    color: #94a3b8;
+  }
+
+  #plz-search {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 9999px;
+    font-size: 1.125rem;
+    transition: all 0.2s;
+    outline: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  #plz-search:focus {
+    border-color: #2563eb;
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+  }
+
+  .seo-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    padding: 3rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 3rem;
+  }
+
+  @media (max-width: 768px) {
+    .seo-content {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+
+  .content-block h2 {
+    font-size: 1.5rem;
+    color: #1e293b;
+    margin-bottom: 1rem;
+  }
+
+  .content-block p {
+    color: #475569;
+    line-height: 1.7;
+  }
+
+  .states-section h2, .faq-section h2 {
+    font-size: 1.875rem;
+    color: #0f172a;
+    margin-bottom: 2rem;
+  }
+
+  .states-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 4rem;
+  }
+
+  .state-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .state-card:hover {
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .state-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .state-name {
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .state-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .arrow-icon {
+    color: #94a3b8;
+    transition: transform 0.2s;
+  }
+
+  .state-card:hover .arrow-icon {
+    color: #2563eb;
+    transform: translateX(4px);
+  }
+
+  .faq-section {
+    padding-top: 2rem;
+  }
+
+  .faq-container {
+    display: grid;
+    gap: 2rem;
+    background: #f8fafc;
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+  }
+
+  .faq-item h3 {
+    font-size: 1.125rem;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+  }
+
+  .faq-item p {
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
