@@ -2,7 +2,7 @@ import { getAllBundeslandPages } from '../utils/geoData.js';
 
 export async function GET(context) {
   const allStates = getAllBundeslandPages();
-  const domain = context.site ? context.site.toString().replace(/\/$/, '') : 'http://localhost:4322';
+  const domain = 'https://plz-daten.de';
 
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
