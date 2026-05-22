@@ -15,7 +15,9 @@ const {
 } = Astro.props;
 
 // Dynamically generate the canonical URL based on the current path and Astro.site
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+// Ensure the host is strictly non-www and matches the trailingSlash: 'never' config
+const siteUrl = new URL(Astro.site);
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href.replace(/\/$/, "");
 
 // Generate JSON-LD BreadcrumbList
 const breadcrumbSchema = breadcrumbs.length > 0 ? {
